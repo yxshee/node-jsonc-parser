@@ -214,6 +214,24 @@ suite('JSON - edits', () => {
 		assertEdit(content, edits, '// This is a comment\n[\n  1,\n  "foo"\n]');
 	});
 
+	test('remove item at an index past the end is a no-op', () => {
+		for (const content of ['[\n  1,\n  2,\n  3\n]', '[]', '[\n  []\n]', '{"items":[1,2]}']) {
+			const path = content.startsWith('{') ? ['items', 2] : [3];
+			const edits = modify(content, path, void 0, options);
+			assertEdit(content, edits, content);
+			assert.deepStrictEqual(modify(content, content.startsWith('{') ? ['items', 99] : [99], void 0, options), []);
+		}
+		assertEdit('[\n  []\n]', modify('[\n  []\n]', [1], void 0, options), '[\n  []\n]');
+		assertEdit('[]', modify('[]', [0], void 0, options), '[]');
+	});
+
+	test('remove item at index -1 is a no-op', () => {
+		for (const content of ['[\n  1,\n  2,\n  3\n]', '[]']) {
+			const edits = modify(content, [-1], void 0, options);
+			assertEdit(content, edits, content);
+		}
+	});
+
 	test('remove last string item in array without formatting', () => {
 		let content = '{"items":["1","2"]}';
 		let edits = modify(content, ['items', 1], void 0, {});

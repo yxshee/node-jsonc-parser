@@ -85,6 +85,10 @@ export function setProperty(text: string, originalPath: JSONPath, value: any, op
 		}
 	} else if (parent.type === 'array' && typeof lastSegment === 'number' && Array.isArray(parent.children)) {
 		const insertIndex = lastSegment;
+		if (value === void 0 && (insertIndex < 0 || insertIndex >= parent.children.length)) {
+			// nothing to remove at that index, like removing a missing property
+			return [];
+		}
 		if (insertIndex === -1) {
 			// Insert
 			const newProperty = `${JSON.stringify(value)}`;
@@ -96,7 +100,7 @@ export function setProperty(text: string, originalPath: JSONPath, value: any, op
 				edit = { offset: previous.offset + previous.length, length: 0, content: ',' + newProperty };
 			}
 			return withFormatting(text, edit, options);
-		} else if (value === void 0 && parent.children.length >= 0) {
+		} else if (value === void 0) {
 			// Removal
 			const removalIndex = lastSegment;
 			const toRemove = parent.children[removalIndex];
